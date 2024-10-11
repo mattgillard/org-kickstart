@@ -34,5 +34,6 @@ resource "aws_ssoadmin_account_assignment" "account_group_assignment" {
   principal_type     = "GROUP"
   target_id          = aws_organizations_account.account.id
   target_type        = "AWS_ACCOUNT"
+  provider = aws.sydney
 }
 
