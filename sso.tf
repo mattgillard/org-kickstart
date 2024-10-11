@@ -14,7 +14,9 @@
 
 
 # SSO Should have been enabled prior to deploying the kickstart. In fact, it cannot be created via API, only console.
-data "aws_ssoadmin_instances" "identity_store" {}
+data "aws_ssoadmin_instances" "identity_store" {
+  provider = aws.sydney
+}
 
 locals {
   identity_store_id = tolist(data.aws_ssoadmin_instances.identity_store.identity_store_ids)[0]

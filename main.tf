@@ -64,6 +64,14 @@ provider "aws" {
   }
 
 }
+provider "aws" {
+  region = "ap-southeast-2"
+  alias = "sydney"
+  default_tags {
+    tags = local.default_tags
+  }
+
+}
 
 provider "aws" {
   alias  = "security-account"
