@@ -29,6 +29,7 @@ resource "aws_ssoadmin_managed_policy_attachment" "admin_policy_attachments" {
   instance_arn       = local.instance_arn
   permission_set_arn = aws_ssoadmin_permission_set.admin_permission_set[0].arn
   managed_policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+  provider = aws.sydney
 }
 
 resource "aws_ssoadmin_permission_set" "admin_permission_set" {
@@ -38,6 +39,7 @@ resource "aws_ssoadmin_permission_set" "admin_permission_set" {
   instance_arn = local.instance_arn
   # relay_state      = "https://s3.console.aws.amazon.com/s3/home?region=us-east-1#"
   session_duration = var.session_duration
+  provider = aws.sydney
 }
 
 resource "aws_identitystore_group" "admin_group" {
@@ -45,5 +47,6 @@ resource "aws_identitystore_group" "admin_group" {
   display_name      = var.admin_group_name
   description       = "Default Group for all Cloud Admins"
   identity_store_id = local.identity_store_id
+  provider = aws.sydney
 }
 
