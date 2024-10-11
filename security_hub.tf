@@ -14,6 +14,7 @@
 
 resource "aws_securityhub_account" "payer_account" {
   count                     = local.security_services["disable_securityhub"] ? 0 : 1
+  provider                  = aws.security-account
   enable_default_standards  = false
   control_finding_generator = "SECURITY_CONTROL"
   auto_enable_controls      = false
@@ -22,7 +23,6 @@ resource "aws_securityhub_account" "payer_account" {
       auto_enable_controls
     ]
   }
-}
 
 # We need to create the hub in the security account _before_ we delegate admin
 # Otherwise, AWS will create the hub with incorrect defaults
@@ -39,17 +39,21 @@ resource "aws_securityhub_account" "security_account" {
   }
 }
 
-resource "aws_organizations_delegated_administrator" "securityhub" {
-  count             = local.security_services["disable_securityhub"] ? 0 : 1
-  account_id        = module.security_account.account_id
-  service_principal = "securityhub.amazonaws.com"
-  depends_on = [
-    aws_securityhub_account.payer_account[0],
-    aws_securityhub_account.security_account[0]
-  ]
-}
+# 11/10 - for me having this enabled caused issues when the aws_securityhub_organization_admin_account below performed the same step
+#resource "aws_organizations_delegated_administrator" "securityhub" {
+#  count             = local.security_services["disable_securityhub"] ? 0 : 1
+#  account_id        = module.security_account.account_id
+#  service_principal = "securityhub.amazonaws.com"
+#  depends_on = [
+#    aws_securityhub_account.payer_account[0],
+#    aws_securityhub_account.security_account[0]
+#  ]
+#}
 
 # Once both hubs are created, we can delegate admin to the security account
+# 11/10 - for me this also had to be done via CLI in ap-southeast-2 region:
+# aws securityhub enable-organization-admin-account --admin-account-id 194722423470
+# This then meant the TF continued successfully with the central configuration
 resource "aws_securityhub_organization_admin_account" "delegated_admin" {
   count = local.security_services["disable_securityhub"] ? 0 : 1
   depends_on = [
@@ -57,6 +61,7 @@ resource "aws_securityhub_organization_admin_account" "delegated_admin" {
     aws_securityhub_account.security_account[0]
   ]
   admin_account_id = module.security_account.account_id
+  provider = aws.payer-ap-southeast-2
 }
 
 resource "aws_securityhub_finding_aggregator" "regional_aggregator" {
