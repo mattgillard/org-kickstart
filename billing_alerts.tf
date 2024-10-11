@@ -26,6 +26,7 @@ resource "aws_sns_topic_subscription" "billing_alerts_root_email" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "billing_alarm" {
+  count = var.billing_alerts == null ? 0 : 1
   for_each            = var.billing_alerts["levels"]
   alarm_name          = "billing_alarm_${each.key}"
   alarm_description   = "Alarm if AWS spending is over ${each.value}"
@@ -40,6 +41,7 @@ resource "aws_cloudwatch_metric_alarm" "billing_alarm" {
 }
 
 resource "aws_sns_topic_subscription" "billing_alerts" {
+  count = var.billing_alerts == null ? 0 : 1
   for_each  = toset(var.billing_alerts["subscriptions"])
   topic_arn = aws_sns_topic.billing_alerts[0].arn
   protocol  = "email"
