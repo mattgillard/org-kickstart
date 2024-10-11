@@ -12,6 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+terraform {
+  required_providers {
+    aws = {
+      source                = "hashicorp/aws"
+      version               = ">= 2.7.0"
+      configuration_aliases = [ aws, aws.sydney ]
+    }
+  }
+}
 variable "account_name" {
   description = "Name of the AWS Account to Create"
   type        = string

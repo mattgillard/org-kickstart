@@ -21,6 +21,11 @@
 module "accounts" {
   for_each = var.accounts
   source   = "./modules/account"
+  providers = {
+    aws.sydney = aws.sydney
+    aws = aws
+  }
+
 
   account_name             = each.value["account_name"]
   account_email            = each.value["account_email"]
