@@ -32,6 +32,7 @@ resource "aws_ssoadmin_account_assignment" "payer_account_group_assignment" {
   principal_type     = "GROUP"
   target_id          = aws_organizations_account.payer.id
   target_type        = "AWS_ACCOUNT"
+  provider = aws.sydney
 }
 
 resource "aws_account_primary_contact" "primary" {
