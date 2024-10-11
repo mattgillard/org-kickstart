@@ -23,6 +23,7 @@ resource "aws_securityhub_account" "payer_account" {
       auto_enable_controls
     ]
   }
+}
 
 # We need to create the hub in the security account _before_ we delegate admin
 # Otherwise, AWS will create the hub with incorrect defaults
