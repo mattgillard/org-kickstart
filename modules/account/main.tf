@@ -63,6 +63,15 @@ variable "disable_sso_management" {
   type = bool
 }
 
+variable "additional_permission_sets" {
+  description = "Map of additional permission set ARNs and group IDs to assign"
+  type = map(object({
+    permission_set_arn = string
+    group_id          = string
+  }))
+  default = {}
+}
+
 resource "aws_organizations_account" "account" {
   name      = var.account_name
   email     = var.account_email

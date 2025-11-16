@@ -37,3 +37,14 @@ resource "aws_ssoadmin_account_assignment" "account_group_assignment" {
   provider = aws.sydney
 }
 
+resource "aws_ssoadmin_account_assignment" "additional_assignments" {
+  for_each           = var.additional_permission_sets
+  instance_arn       = local.instance_arn
+  permission_set_arn = each.value.permission_set_arn
+  principal_id       = each.value.group_id
+  principal_type     = "GROUP"
+  target_id          = aws_organizations_account.account.id
+  target_type        = "AWS_ACCOUNT"
+  provider           = aws.sydney
+}
+

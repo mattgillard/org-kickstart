@@ -37,5 +37,11 @@ module "accounts" {
   operations_contact       = var.global_operations_contact
   primary_contact          = var.global_primary_contact
   disable_sso_management   = var.disable_sso_management
+  additional_permission_sets = var.disable_sso_management ? {} : {
+    for k, v in var.additional_permission_sets : k => {
+      permission_set_arn = aws_ssoadmin_permission_set.additional_permission_sets[k].arn
+      group_id          = aws_identitystore_group.additional_groups[k].group_id
+    }
+  }
 }
 

@@ -40,6 +40,12 @@ module "security_account" {
   security_contact         = var.global_security_contact
   operations_contact       = var.global_operations_contact
   primary_contact          = var.global_primary_contact
+  additional_permission_sets = var.disable_sso_management ? {} : {
+    for k, v in var.additional_permission_sets : k => {
+      permission_set_arn = aws_ssoadmin_permission_set.additional_permission_sets[k].arn
+      group_id          = aws_identitystore_group.additional_groups[k].group_id
+    }
+  }
 }
 
 

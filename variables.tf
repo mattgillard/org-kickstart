@@ -73,6 +73,17 @@ variable "admin_group_name" {
   default     = "AllAdmins"
 }
 
+variable "additional_permission_sets" {
+  description = "Map of additional permission sets to create beyond the default admin set"
+  type = map(object({
+    description        = string
+    managed_policy_arn = string
+    group_name         = string
+    session_duration   = optional(string)
+  }))
+  default = {}
+}
+
 #
 # CloudTrail
 #

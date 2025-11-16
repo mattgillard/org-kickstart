@@ -50,3 +50,29 @@ resource "aws_identitystore_group" "admin_group" {
   provider = aws.sydney
 }
 
+# Additional Permission Sets (beyond admin)
+resource "aws_ssoadmin_permission_set" "additional_permission_sets" {
+  for_each         = var.disable_sso_management == true ? {} : var.additional_permission_sets
+  name             = each.key
+  description      = each.value.description
+  instance_arn     = local.instance_arn
+  session_duration = coalesce(each.value.session_duration, var.session_duration)
+  provider         = aws.sydney
+}
+
+resource "aws_ssoadmin_managed_policy_attachment" "additional_policy_attachments" {
+  for_each           = var.disable_sso_management == true ? {} : var.additional_permission_sets
+  instance_arn       = local.instance_arn
+  permission_set_arn = aws_ssoadmin_permission_set.additional_permission_sets[each.key].arn
+  managed_policy_arn = each.value.managed_policy_arn
+  provider           = aws.sydney
+}
+
+resource "aws_identitystore_group" "additional_groups" {
+  for_each          = var.disable_sso_management == true ? {} : var.additional_permission_sets
+  display_name      = each.value.group_name
+  description       = "Group for ${each.key} permission set"
+  identity_store_id = local.identity_store_id
+  provider          = aws.sydney
+}
+

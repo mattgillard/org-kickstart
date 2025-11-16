@@ -35,6 +35,17 @@ resource "aws_ssoadmin_account_assignment" "payer_account_group_assignment" {
   provider = aws.sydney
 }
 
+resource "aws_ssoadmin_account_assignment" "payer_additional_assignments" {
+  for_each           = var.disable_sso_management == true ? {} : var.additional_permission_sets
+  instance_arn       = local.instance_arn
+  permission_set_arn = aws_ssoadmin_permission_set.additional_permission_sets[each.key].arn
+  principal_id       = aws_identitystore_group.additional_groups[each.key].group_id
+  principal_type     = "GROUP"
+  target_id          = aws_organizations_account.payer.id
+  target_type        = "AWS_ACCOUNT"
+  provider           = aws.sydney
+}
+
 resource "aws_account_primary_contact" "primary" {
   count              = var.global_primary_contact != null ? 1 : 0
   full_name          = var.global_primary_contact["full_name"]
