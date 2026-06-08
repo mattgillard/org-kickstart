@@ -17,7 +17,7 @@ terraform {
     aws = {
       source                = "hashicorp/aws"
       version               = ">= 2.7.0"
-      configuration_aliases = [aws, aws.identity_center]
+      configuration_aliases = [aws]
     }
   }
 }
@@ -56,6 +56,17 @@ locals {
 }
 
 #
+# Region where IAM Identity Center (AWS SSO) is enabled. Identity Center is a
+# regional service, so all sso-admin / identity-store resources must be managed
+# in this region. Defaults to us-east-1 to preserve existing behavior.
+#
+variable "identity_center_region" {
+  description = "Region in which IAM Identity Center (AWS SSO) is enabled"
+  type        = string
+  default     = "us-east-1"
+}
+
+#
 # Create Default Provider for Management Account
 #
 provider "aws" {
@@ -64,6 +75,17 @@ provider "aws" {
     tags = local.default_tags
   }
 
+}
+
+#
+# Provider pinned to the IAM Identity Center region for all SSO resources
+#
+provider "aws" {
+  alias  = "identity_center"
+  region = var.identity_center_region
+  default_tags {
+    tags = local.default_tags
+  }
 }
 
 provider "aws" {
