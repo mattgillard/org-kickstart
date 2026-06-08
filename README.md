@@ -81,6 +81,7 @@ organization = {
   admin_permission_set_name         = "AdministratorAccess"
   admin_group_name                  = "AllAdmins"
   disable_sso_management            = false
+  identity_center_region            = "us-east-1" # Region where IAM Identity Center is enabled
   deploy_audit_role                 = true
   audit_role_name                   = "security-audit"
   audit_role_stack_set_template_url = "https://s3.amazonaws.com/pht-cloudformation/aws-account-automation/AuditRole-Template.yaml"

@@ -17,7 +17,9 @@
 #
 # This allows terraform to reference attributes of the AWS SSO Identity Storey
 #
-data "aws_ssoadmin_instances" "identity_store" {}
+data "aws_ssoadmin_instances" "identity_store" {
+  provider = aws.identity_center
+}
 
 locals {
   identity_store_id = tolist(data.aws_ssoadmin_instances.identity_store.identity_store_ids)[0]
@@ -25,6 +27,7 @@ locals {
 }
 
 resource "aws_ssoadmin_account_assignment" "account_group_assignment" {
+  provider           = aws.identity_center
   count              = var.disable_sso_management == true ? 0 : 1
   instance_arn       = local.instance_arn
   permission_set_arn = var.admin_permission_set_arn
