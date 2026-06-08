@@ -89,5 +89,6 @@ module "declarative_policies" {
 }
 
 output "declarative_policy_bucket" {
-  value = aws_s3_bucket.declarative_policy_bucket[0].id
+  # Bucket is gated on declarative_policy_bucket_name; one() yields null when unset.
+  value = one(aws_s3_bucket.declarative_policy_bucket[*].id)
 }
