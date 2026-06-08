@@ -17,7 +17,7 @@ terraform {
     aws = {
       source                = "hashicorp/aws"
       version               = ">= 2.7.0"
-      configuration_aliases = [ aws, aws.sydney ]
+      configuration_aliases = [aws, aws.identity_center]
     }
   }
 }
@@ -67,7 +67,7 @@ variable "additional_permission_sets" {
   description = "Map of additional permission set ARNs and group IDs to assign"
   type = map(object({
     permission_set_arn = string
-    group_id          = string
+    group_id           = string
   }))
   default = {}
 }

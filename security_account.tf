@@ -26,8 +26,8 @@
 module "security_account" {
   source = "./modules/account"
   providers = {
-      aws = aws
-      aws.sydney = aws.sydney
+    aws                 = aws
+    aws.identity_center = aws.identity_center
   }
 
   account_name             = var.security_account_name
@@ -43,7 +43,7 @@ module "security_account" {
   additional_permission_sets = var.disable_sso_management ? {} : {
     for k, v in var.additional_permission_sets : k => {
       permission_set_arn = aws_ssoadmin_permission_set.additional_permission_sets[k].arn
-      group_id          = aws_identitystore_group.additional_groups[k].group_id
+      group_id           = aws_identitystore_group.additional_groups[k].group_id
     }
   }
 }

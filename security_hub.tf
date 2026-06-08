@@ -62,7 +62,7 @@ resource "aws_securityhub_organization_admin_account" "delegated_admin" {
     aws_securityhub_account.security_account[0]
   ]
   admin_account_id = module.security_account.account_id
-  provider = aws.payer-ap-southeast-2
+  provider         = aws.payer-ap-southeast-2
 }
 
 resource "aws_securityhub_finding_aggregator" "regional_aggregator" {

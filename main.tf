@@ -15,9 +15,9 @@
 terraform {
   required_providers {
     aws = {
-      source  = "hashicorp/aws"
-      version = ">= 2.7.0"
-      configuration_aliases = [ aws, aws.sydney ]
+      source                = "hashicorp/aws"
+      version               = ">= 2.7.0"
+      configuration_aliases = [aws, aws.identity_center]
     }
   }
 }
@@ -67,7 +67,7 @@ provider "aws" {
 }
 
 provider "aws" {
-  alias = "payer-ap-southeast-2"
+  alias  = "payer-ap-southeast-2"
   region = "ap-southeast-2"
   default_tags {
     tags = local.default_tags

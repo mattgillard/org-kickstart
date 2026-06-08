@@ -32,7 +32,7 @@ resource "aws_ssoadmin_account_assignment" "payer_account_group_assignment" {
   principal_type     = "GROUP"
   target_id          = aws_organizations_account.payer.id
   target_type        = "AWS_ACCOUNT"
-  provider = aws.sydney
+  provider           = aws.identity_center
 }
 
 resource "aws_ssoadmin_account_assignment" "payer_additional_assignments" {
@@ -43,7 +43,7 @@ resource "aws_ssoadmin_account_assignment" "payer_additional_assignments" {
   principal_type     = "GROUP"
   target_id          = aws_organizations_account.payer.id
   target_type        = "AWS_ACCOUNT"
-  provider           = aws.sydney
+  provider           = aws.identity_center
 }
 
 resource "aws_account_primary_contact" "primary" {
