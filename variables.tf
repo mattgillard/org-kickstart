@@ -23,6 +23,12 @@ variable "tag_set" {
   default     = {}
 }
 
+variable "additional_service_access_principals" {
+  description = "Additional AWS service principals to enable trusted access for, alongside the built-in services"
+  type        = set(string)
+  default     = []
+}
+
 #
 # Core Accounts
 #

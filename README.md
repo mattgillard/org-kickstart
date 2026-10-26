@@ -55,6 +55,19 @@ org-kickstart is indented to support all the basic things needed to setup a prop
 
 While this is intended to be the "highly opinionated" solution "for the rest of us", many options are configurable or can be disabled. Only the items above marked "required" cannot be disabled.
 
+### Additional trusted services
+
+Set the module input `additional_service_access_principals` to manage trusted access for services beyond the built-in list. It defaults to an empty set, so existing callers keep the same services. For example:
+
+```hcl
+additional_service_access_principals = [
+  "compute-optimizer.amazonaws.com",
+  "cost-optimization-hub.bcm.amazonaws.com",
+]
+```
+
+These principals are combined with the built-in services without duplicates. Include services enabled manually here to prevent Terraform from disabling their trusted access on the next apply. This manages organisation trusted access only, not each service's enrolment or delegated administrator.
+
 ### Regions & Providers
 Terraform sucks at allowing you to make calls across AWS regions. Org-Kickstart has pre-defined providers for all the default (non-opt-in) regions for both the payer and security account to be able to enable regional security services.
 
