@@ -16,7 +16,7 @@
 # Define the Organization & enable as many services as makes sense
 #
 resource "aws_organizations_organization" "org" {
-  aws_service_access_principals = [
+  aws_service_access_principals = setunion([
     "access-analyzer.amazonaws.com",
     "account.amazonaws.com",
     "backup.amazonaws.com",
@@ -40,7 +40,7 @@ resource "aws_organizations_organization" "org" {
     "securityhub.amazonaws.com",
     "ssm.amazonaws.com",
     "sso.amazonaws.com",
-  ]
+  ], var.additional_service_access_principals)
 
   enabled_policy_types = [
     "AISERVICES_OPT_OUT_POLICY",
