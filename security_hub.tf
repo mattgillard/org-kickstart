@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Central configuration cannot enrol the management account automatically.
+# Enable its home-region hub before delegating administration and associating policies.
 resource "aws_securityhub_account" "payer_account" {
   count                     = local.security_services["disable_securityhub"] ? 0 : 1
-  provider                  = aws.security-account
+  provider                  = aws.payer-ap-southeast-2
   enable_default_standards  = false
   control_finding_generator = "SECURITY_CONTROL"
   auto_enable_controls      = false
