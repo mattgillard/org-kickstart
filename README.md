@@ -71,6 +71,16 @@ These principals are combined with the built-in services without duplicates. Inc
 ### Regions & Providers
 Terraform sucks at allowing you to make calls across AWS regions. Org-Kickstart has pre-defined providers for all the default (non-opt-in) regions for both the payer and security account to be able to enable regional security services.
 
+### Security Hub management-account enrolment
+
+The management account must already have Security Hub CSPM enabled before the delegated administrator can apply a central configuration policy to it. The root module manages its home-region subscription in `ap-southeast-2` using the payer provider, separately from the security account's subscription. Default standards remain disabled (`NoStandards`).
+
+The finding aggregator currently uses `ALL_REGIONS`. A successful management-account policy association also requires enrolment in every linked Region, not just the home Region or the workload-approved Regions. This home-region resource does not enable the management account in other Regions. Consumers must manage those regional subscriptions before retrying a failed association, or explicitly review a narrower aggregation scope. See [AWS's association troubleshooting guidance](https://docs.aws.amazon.com/securityhub/latest/userguide/view-policy.html).
+
+**Upgrading from the incorrect payer provider:** earlier versions configured both `payer_account` and `security_account` with the security-account provider. Inspect the existing Terraform state and a normal refreshed plan before applying this fix. With AWS provider v5.100.0, refresh reads the hub for the configured provider's account and Region rather than using the stale resource ID. An unenrolled payer therefore plans a new payer subscription; an already enrolled payer is rediscovered. Do not destroy the old payer resource or disable the security account's hub to repair this duplicate state. The separate `security_account` resource must continue to manage that hub. Do not use `-refresh=false` for this upgrade.
+
+Review the plan for unexpected replacements, particularly if an existing subscription's `enable_default_standards` value differs. Existing centrally managed accounts must not have their control settings changed locally. After all required regional subscriptions exist, retry the failed policy association from the delegated administrator in the home Region. An unchanged Terraform association resource does not automatically retry a failed AWS association; any association replacement must be reviewed separately. Recheck both the management-account status and its parent/root statuses.
+
 ## Setup
 
 You will need to create the new AWS account and enable SSO by hand prior to using org-kickstart. See the [BOOTSTRAP](BOOTSTRAP.md) documentation for what you need to do when deploying into a brand new AWS Account
