@@ -83,5 +83,16 @@ resource "aws_organizations_delegated_administrator" "access_analyzer" {
   count             = var.enable_access_analyzer ? 1 : 0
   account_id        = module.security_account.account_id
   service_principal = "access-analyzer.amazonaws.com"
+  depends_on        = [aws_iam_service_linked_role.access_analyzer]
+}
+
+# CreateAnalyzer for an ORGANIZATION analyzer fails with "Access Analyzer Service Linked Role
+# is not in the organizational management account" until this role exists in the payer. The
+# console creates it implicitly; Terraform must create it. If it already exists, import it:
+#   terraform import 'module.organization.aws_iam_service_linked_role.access_analyzer[0]' \
+#     arn:aws:iam::<payer>:role/aws-service-role/access-analyzer.amazonaws.com/AWSServiceRoleForAccessAnalyzer
+resource "aws_iam_service_linked_role" "access_analyzer" {
+  count            = var.enable_access_analyzer ? 1 : 0
+  aws_service_name = "access-analyzer.amazonaws.com"
 }
 
