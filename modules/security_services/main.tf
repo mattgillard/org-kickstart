@@ -13,6 +13,9 @@
 # limitations under the License.
 
 terraform {
+  # removed blocks in inspector.tf
+  required_version = ">= 1.7"
+
   required_providers {
     aws = {
       source                = "hashicorp/aws"
