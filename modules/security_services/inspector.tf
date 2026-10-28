@@ -25,6 +25,16 @@ variable "inspector_resource_types" {
   default     = ["EC2", "ECR"]
 }
 
+variable "inspector_account_resource_types" {
+  description = <<-EOT
+    Per-account overrides of inspector_resource_types for existing member accounts, as a map
+    of account ID => scan types. For example, skip ECR in an account whose images are
+    replicated from one that is already scanned: { "111111111111" = ["EC2"] }.
+  EOT
+  type        = map(list(string))
+  default     = {}
+}
+
 locals {
   enable_inspector = !tobool(local.security_services["disable_inspector"])
 
@@ -34,6 +44,18 @@ locals {
     for account in data.aws_organizations_organizational_unit_descendant_accounts.accounts.accounts :
     account.id if account.id != var.security_account_id && account.status == "ACTIVE"
   ]) : toset([])
+
+  # Members grouped by their scan types, so accounts sharing a set share one enabler.
+  inspector_member_types = {
+    for id in local.inspector_member_ids :
+    id => sort(lookup(var.inspector_account_resource_types, id, var.inspector_resource_types))
+  }
+  inspector_member_groups = {
+    for types in distinct(values(local.inspector_member_types)) : join(",", types) => {
+      resource_types = types
+      account_ids    = [for id, t in local.inspector_member_types : id if t == types]
+    }
+  }
 }
 
 resource "aws_inspector2_delegated_admin_account" "inspector" {
@@ -74,9 +96,9 @@ resource "aws_inspector2_enabler" "security_account" {
 }
 
 resource "aws_inspector2_enabler" "members" {
-  count          = length(local.inspector_member_ids) > 0 ? 1 : 0
+  for_each       = local.inspector_member_groups
   provider       = aws.security_account
   depends_on     = [aws_inspector2_member_association.member]
-  account_ids    = local.inspector_member_ids
-  resource_types = var.inspector_resource_types
+  account_ids    = each.value.account_ids
+  resource_types = each.value.resource_types
 }
