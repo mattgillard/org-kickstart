@@ -45,16 +45,9 @@ locals {
     account.id if account.id != var.security_account_id && account.status == "ACTIVE"
   ]) : toset([])
 
-  # Members grouped by their scan types, so accounts sharing a set share one enabler.
   inspector_member_types = {
     for id in local.inspector_member_ids :
     id => sort(lookup(var.inspector_account_resource_types, id, var.inspector_resource_types))
-  }
-  inspector_member_groups = {
-    for types in distinct(values(local.inspector_member_types)) : join(",", types) => {
-      resource_types = types
-      account_ids    = [for id, t in local.inspector_member_types : id if t == types]
-    }
   }
 }
 
@@ -90,7 +83,7 @@ data "aws_caller_identity" "payer" {
 # Inspector to be added as a member") until it has enabled Inspector itself.
 #
 # Create-only bootstrap: once associated, the management account is a member, and only the
-# delegated administrator can disable a member's scans. aws_inspector2_enabler.members owns its
+# delegated administrator can disable a member's scans. aws_inspector2_enabler.member owns its
 # scan types from then on; ignore_changes stops this resource calling Disable with the
 # management account's own credentials. Its delete would do the same, so before turning
 # Inspector off, `terraform state rm` this resource.
@@ -100,6 +93,10 @@ resource "aws_inspector2_enabler" "payer" {
   depends_on     = [aws_inspector2_delegated_admin_account.inspector]
   account_ids    = [data.aws_caller_identity.payer.account_id]
   resource_types = local.inspector_member_types[data.aws_caller_identity.payer.account_id]
+
+  timeouts {
+    create = "15m"
+  }
 
   lifecycle {
     ignore_changes = all
@@ -121,12 +118,39 @@ resource "aws_inspector2_enabler" "security_account" {
   depends_on     = [aws_inspector2_delegated_admin_account.inspector]
   account_ids    = [var.security_account_id]
   resource_types = var.inspector_resource_types
+
+  # Enabling EC2 scanning has taken about 10 minutes; the provider default is 5.
+  timeouts {
+    create = "15m"
+    update = "15m"
+  }
 }
 
-resource "aws_inspector2_enabler" "members" {
-  for_each       = local.inspector_member_groups
+# One enabler per account. Enablers that share accounts are unsafe: removing an account from
+# an enabler disables all of its scan types, and Terraform does not order that against the
+# enabler that adds it, so moving an account between them could leave it with no scanning.
+#
+# Creating an enabler also disables any types not listed, which removes what auto-enable gave
+# an account with an override when it was associated.
+resource "aws_inspector2_enabler" "member" {
+  for_each       = local.inspector_member_types
   provider       = aws.security_account
   depends_on     = [aws_inspector2_member_association.member]
-  account_ids    = each.value.account_ids
-  resource_types = each.value.resource_types
+  account_ids    = [each.key]
+  resource_types = each.value
+
+  timeouts {
+    create = "15m"
+    update = "15m"
+  }
+}
+
+# Replaced by aws_inspector2_enabler.member. Forget the old grouped enablers rather than
+# destroying them, because their delete would disable Inspector for every account in them.
+removed {
+  from = aws_inspector2_enabler.members
+
+  lifecycle {
+    destroy = false
+  }
 }
