@@ -57,10 +57,7 @@ module "security_account" {
 #   service_principal = "macie.amazonaws.com"
 # }
 
-# resource "aws_organizations_delegated_administrator" "inspector2" {
-#   account_id        = module.security_account.account_id
-#   service_principal = "inspector2.amazonaws.com"
-# }
+# Inspector delegation is managed per region in modules/security_services/inspector.tf.
 
 # resource "aws_organizations_delegated_administrator" "securityhub" {
 #   account_id        = module.security_account.account_id

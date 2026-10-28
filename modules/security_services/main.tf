@@ -39,7 +39,7 @@ variable "security_services" {
   default = {
     disable_guardduty   = "false"
     disable_macie       = "false"
-    disable_inspector   = "false"
+    disable_inspector   = "true"
     disable_securityhub = "false"
   }
 }
@@ -49,7 +49,7 @@ locals {
     tomap({
       disable_guardduty   = "false"
       disable_macie       = "false"
-      disable_inspector   = "false"
+      disable_inspector   = "true"
       disable_securityhub = "false"
     }),
     var.security_services,
