@@ -29,6 +29,12 @@ variable "additional_service_access_principals" {
   default     = []
 }
 
+variable "enable_access_analyzer" {
+  description = "Delegate IAM Access Analyzer administration to the security account. Create the regional analyzers with modules/access_analyzer."
+  type        = bool
+  default     = false
+}
+
 #
 # Core Accounts
 #

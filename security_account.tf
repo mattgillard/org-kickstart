@@ -77,3 +77,11 @@ resource "aws_organizations_delegated_administrator" "cloudformation" {
   service_principal = "member.org.stacksets.cloudformation.amazonaws.com"
 }
 
+# Lets the security account create organization-wide analyzers. The analyzers are regional;
+# create them with modules/access_analyzer once per region, after this module.
+resource "aws_organizations_delegated_administrator" "access_analyzer" {
+  count             = var.enable_access_analyzer ? 1 : 0
+  account_id        = module.security_account.account_id
+  service_principal = "access-analyzer.amazonaws.com"
+}
+
