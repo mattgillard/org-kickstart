@@ -88,12 +88,22 @@ data "aws_caller_identity" "payer" {
 
 # AssociateMember rejects the management account ("your organization master must first enable
 # Inspector to be added as a member") until it has enabled Inspector itself.
+#
+# Create-only bootstrap: once associated, the management account is a member, and only the
+# delegated administrator can disable a member's scans. aws_inspector2_enabler.members owns its
+# scan types from then on; ignore_changes stops this resource calling Disable with the
+# management account's own credentials. Its delete would do the same, so before turning
+# Inspector off, `terraform state rm` this resource.
 resource "aws_inspector2_enabler" "payer" {
   count          = contains(local.inspector_member_ids, data.aws_caller_identity.payer.account_id) ? 1 : 0
   provider       = aws.payer_account
   depends_on     = [aws_inspector2_delegated_admin_account.inspector]
   account_ids    = [data.aws_caller_identity.payer.account_id]
   resource_types = local.inspector_member_types[data.aws_caller_identity.payer.account_id]
+
+  lifecycle {
+    ignore_changes = all
+  }
 }
 
 # Auto-enable does not reach accounts that already exist, so associate and enable them here.
