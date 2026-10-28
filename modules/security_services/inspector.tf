@@ -58,6 +58,8 @@ locals {
   }
 }
 
+# Delegating the same account in several regions at once can fail with "Multiple changes
+# cannot be done at the same time"; re-running the apply completes the remaining regions.
 resource "aws_inspector2_delegated_admin_account" "inspector" {
   count      = local.enable_inspector ? 1 : 0
   provider   = aws.payer_account
@@ -66,9 +68,11 @@ resource "aws_inspector2_delegated_admin_account" "inspector" {
 
 # Covers accounts that join the organization later.
 resource "aws_inspector2_organization_configuration" "inspector" {
-  count      = local.enable_inspector ? 1 : 0
-  provider   = aws.security_account
-  depends_on = [aws_inspector2_delegated_admin_account.inspector]
+  count    = local.enable_inspector ? 1 : 0
+  provider = aws.security_account
+  # UpdateOrganizationConfiguration fails with "Invoking account is not enabled" until
+  # Inspector is enabled in the delegated admin account itself.
+  depends_on = [aws_inspector2_enabler.security_account]
 
   auto_enable {
     ec2         = contains(var.inspector_resource_types, "EC2")
@@ -78,11 +82,25 @@ resource "aws_inspector2_organization_configuration" "inspector" {
   }
 }
 
+data "aws_caller_identity" "payer" {
+  provider = aws.payer_account
+}
+
+# AssociateMember rejects the management account ("your organization master must first enable
+# Inspector to be added as a member") until it has enabled Inspector itself.
+resource "aws_inspector2_enabler" "payer" {
+  count          = contains(local.inspector_member_ids, data.aws_caller_identity.payer.account_id) ? 1 : 0
+  provider       = aws.payer_account
+  depends_on     = [aws_inspector2_delegated_admin_account.inspector]
+  account_ids    = [data.aws_caller_identity.payer.account_id]
+  resource_types = local.inspector_member_types[data.aws_caller_identity.payer.account_id]
+}
+
 # Auto-enable does not reach accounts that already exist, so associate and enable them here.
 resource "aws_inspector2_member_association" "member" {
   for_each   = local.inspector_member_ids
   provider   = aws.security_account
-  depends_on = [aws_inspector2_delegated_admin_account.inspector]
+  depends_on = [aws_inspector2_delegated_admin_account.inspector, aws_inspector2_enabler.payer]
   account_id = each.key
 }
 
